@@ -1,0 +1,10 @@
+{
+  "SENDER_ADDRESS": "r...",
+  "SENDER_SECRET": "s...",
+  "FEE": "20",
+  "DESTINATION" : "r...",
+  "AMOUNT_CURRENCY" : "ABC",
+  "AMOUNT_ISSUER" : "r...",
+  "SEND_CURRENCY" : "DEF",
+  "SEND_ISSUER" : "r..."
+}
