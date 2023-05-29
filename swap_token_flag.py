@@ -76,7 +76,7 @@ def prepare_transaction(send_max, amount, total):
         ),
         destination=send_data_js["DESTINATION"],
         fee=send_data_js["FEE"],
-        #flags=[PaymentFlag.TF_PARTIAL_PAYMENT],
+        flags=[PaymentFlag.TF_PARTIAL_PAYMENT],
         last_ledger_sequence=xrpl.ledger.get_latest_validated_ledger_sequence(client) + Max_Ledgers_to_Wait,
         sequence=sender_wallet.sequence,
         memos=[memo_tx]

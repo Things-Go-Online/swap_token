@@ -5,13 +5,17 @@ from decimal import Decimal
 
 WS_URL = "wss://rippled.thingsgo.online:6005"
 
+with open("send_data.json", "r") as send_data:
+    send_data_js = json.loads(send_data.read())
+    send_data.close()
+
 async def send_transaction(transaction, WS_URL):
     async with websockets.connect(WS_URL) as websocket:
         await websocket.send(transaction)
         response = await websocket.recv()
         return json.loads(response)
 
-def check_price(send_data_js, WS_URL):
+def check_price(WS_URL):
     request = {
         "taker_gets": {
             "currency": send_data_js["AMOUNT_CURRENCY"],
@@ -49,3 +53,13 @@ def check_status_transaction(tx_hash, WS_URL):
     transaction = { "id": 1, "command": "tx", "transaction": tx_hash, "binary": False }
     response = asyncio.run(send_transaction(json.dumps(transaction), WS_URL))
     return response
+
+def check_account_balance(WS_URL):
+    transaction = {'command': 'account_lines', 'account': send_data_js["SENDER_ADDRESS"]}
+    response = asyncio.run(send_transaction(json.dumps(transaction), WS_URL))
+    for i in range(len(response["result"]["lines"])):
+        line = response["result"]["lines"][i]
+        if line["currency"] == send_data_js["SEND_CURRENCY"]:
+            balance_send_currency = line["balance"]
+        print(("Total amount of {} available: {}").format(line["currency"], line["balance"]))
+        return(Decimal(line["balance"]))
