@@ -46,29 +46,48 @@ def loads_inv_value(etotal_inv, deltaE, tx_hash):
     try:
       for i in range(len(a["result"]["meta"]["AffectedNodes"])):
         node = a["result"]["meta"]["AffectedNodes"][i]["ModifiedNode"]
-        if "HighLimit" in node["FinalFields"]:
-          if ((node["FinalFields"]["HighLimit"]["issuer"] ==  send_data_js["SEND_ISSUER"]) and (node["FinalFields"]["HighLimit"]["currency"] ==  send_data_js["SEND_CURRENCY"])):
+        if ("HighLimit" in node["FinalFields"] and "LowLimit" in node["FinalFields"]):
+          if ((node["FinalFields"]["HighLimit"]["issuer"] ==  send_data_js["SEND_ISSUER"]) and (node["FinalFields"]["HighLimit"]["currency"] ==  send_data_js["SEND_CURRENCY"]) and (node["FinalFields"]["LowLimit"]["issuer"] ==  send_data_js["SENDER_ADDRESS"])):
             send_token = Decimal(node["PreviousFields"]["Balance"]["value"]) - Decimal(node["FinalFields"]["Balance"]["value"])
-            #print(send_token)
-          if ((node["FinalFields"]["HighLimit"]["issuer"] ==  send_data_js["AMOUNT_ISSUER"]) and (node["FinalFields"]["HighLimit"]["currency"] ==  send_data_js["AMOUNT_CURRENCY"])):
+
+          elif ((node["FinalFields"]["LowLimit"]["issuer"] ==  send_data_js["SEND_ISSUER"]) and (node["FinalFields"]["LowLimit"]["currency"] ==  send_data_js["SEND_CURRENCY"]) and (node["FinalFields"]["HighLimit"]["issuer"] ==  send_data_js["SENDER_ADDRESS"])):
+            send_token = Decimal(node["FinalFields"]["Balance"]["value"]) - Decimal(node["PreviousFields"]["Balance"]["value"])
+
+          elif ((node["FinalFields"]["HighLimit"]["issuer"] ==  send_data_js["AMOUNT_ISSUER"]) and (node["FinalFields"]["HighLimit"]["currency"] ==  send_data_js["AMOUNT_CURRENCY"]) and (node["FinalFields"]["LowLimit"]["issuer"] ==  send_data_js["DESTINATION"])):
             amount_token = Decimal(node["FinalFields"]["Balance"]["value"]) - Decimal(node["PreviousFields"]["Balance"]["value"])
+
+          elif ((node["FinalFields"]["LowLimit"]["issuer"] ==  send_data_js["AMOUNT_ISSUER"]) and (node["FinalFields"]["LowLimit"]["currency"] ==  send_data_js["AMOUNT_CURRENCY"]) and (node["FinalFields"]["HighLimit"]["issuer"] ==  send_data_js["DESTINATION"])):
+            amount_token = Decimal(node["PreviousFields"]["Balance"]["value"]) - Decimal(node["FinalFields"]["Balance"]["value"]) 
             #print(amount_token)
     except:
       time.sleep(10)
       a = check_status_transaction(tx_hash, "wss://rippled.thingsgo.online:6005")
       for i in range(len(a["result"]["meta"]["AffectedNodes"])):
         node = a["result"]["meta"]["AffectedNodes"][i]["ModifiedNode"]
-        if "HighLimit" in node["FinalFields"]:
-          if ((node["FinalFields"]["HighLimit"]["issuer"] ==  send_data_js["SEND_ISSUER"]) and (node["FinalFields"]["HighLimit"]["currency"] ==  send_data_js["SEND_CURRENCY"])):
+        if ("HighLimit" in node["FinalFields"] and "LowLimit" in node["FinalFields"]):
+          if ((node["FinalFields"]["HighLimit"]["issuer"] ==  send_data_js["SEND_ISSUER"]) and (node["FinalFields"]["HighLimit"]["currency"] ==  send_data_js["SEND_CURRENCY"]) and (node["FinalFields"]["LowLimit"]["issuer"] ==  send_data_js["SENDER_ADDRESS"])):
+            send_token = Decimal(node["FinalFields"]["Balance"]["value"]) - Decimal(node["PreviousFields"]["Balance"]["value"])
+
+          elif ((node["FinalFields"]["LowLimit"]["issuer"] ==  send_data_js["SEND_ISSUER"]) and (node["FinalFields"]["LowLimit"]["currency"] ==  send_data_js["SEND_CURRENCY"]) and (node["FinalFields"]["HighLimit"]["issuer"] ==  send_data_js["SENDER_ADDRESS"])):
             send_token = Decimal(node["PreviousFields"]["Balance"]["value"]) - Decimal(node["FinalFields"]["Balance"]["value"])
-            #print(send_token)
-          if ((node["FinalFields"]["HighLimit"]["issuer"] ==  send_data_js["AMOUNT_ISSUER"]) and (node["FinalFields"]["HighLimit"]["currency"] ==  send_data_js["AMOUNT_CURRENCY"])):
+
+          elif ((node["FinalFields"]["HighLimit"]["issuer"] ==  send_data_js["AMOUNT_ISSUER"]) and (node["FinalFields"]["HighLimit"]["currency"] ==  send_data_js["AMOUNT_CURRENCY"]) and (node["FinalFields"]["LowLimit"]["issuer"] ==  send_data_js["DESTINATION"])):
             amount_token = Decimal(node["FinalFields"]["Balance"]["value"]) - Decimal(node["PreviousFields"]["Balance"]["value"])
+
+          elif ((node["FinalFields"]["LowLimit"]["issuer"] ==  send_data_js["AMOUNT_ISSUER"]) and (node["FinalFields"]["LowLimit"]["currency"] ==  send_data_js["AMOUNT_CURRENCY"]) and (node["FinalFields"]["HighLimit"]["issuer"] ==  send_data_js["DESTINATION"])):
+            amount_token = Decimal(node["PreviousFields"]["Balance"]["value"]) - Decimal(node["FinalFields"]["Balance"]["value"]) 
+
+    #diffE = round((deltaE - send_token), 6)
+    delta_blockchain_real_value = Decimal(deltaE) - Decimal(send_token)
 
     ts = time.time()
     for inv in etotal_inv.keys():
       inv_ant_name = inv + "_ant"
       etotal_inv_ant[inv_ant_name] =  etotal_inv[inv]
+    
+    if inv_ant_name is not None:
+      etotal_inv_ant[inv_ant_name] = etotal_inv_ant[inv_ant_name] - delta_blockchain_real_value
+    
     filejson = etotal_inv_ant
     try:
       with open('lastenergy.json', 'w+', encoding='utf-8') as f:
